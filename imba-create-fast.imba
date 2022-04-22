@@ -12,7 +12,10 @@ if process.argv.length < 3
 let template_path = path.join __dirname, "template"
 let output_path = path.join process.cwd!, process.argv[2]
 
-if pathExistsSync(output_path) and output_path !== process.cwd!
+let outpath_is_cwd = output_path === process.cwd!
+let outpath_already_exists = pathExistsSync output_path
+
+if outpath_already_exists and !outpath_is_cwd
 	quit "Output path already exists"
 
 try
@@ -20,10 +23,11 @@ try
 catch
 	quit "Failed to copy project template"
 
-try
-	process.chdir output_path
-catch
-	quit "Failed to change to project dir"
+unless outpath_is_cwd
+	try
+		process.chdir output_path
+	catch
+		quit "Failed to change to project dir"
 
 try
 	execSync 'npm i', { stdio: 'inherit' }

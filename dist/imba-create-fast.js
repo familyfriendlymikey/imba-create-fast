@@ -19,7 +19,10 @@ if (process.argv.length < 3) {
 let template_path = path.join(__dirname,"template");
 let output_path = path.join(process.cwd(),process.argv[2]);
 
-if (pathExistsSync(output_path) && output_path !== process.cwd()) {
+let outpath_is_cwd = output_path === process.cwd();
+let outpath_already_exists = pathExistsSync(output_path);
+
+if (outpath_already_exists && !outpath_is_cwd) {
 	
 	quit("Output path already exists");
 };
@@ -32,12 +35,15 @@ try {
 	quit("Failed to copy project template");
 };
 
-try {
+if (!outpath_is_cwd) {
 	
-	process.chdir(output_path);
-} catch ($2) {
-	
-	quit("Failed to change to project dir");
+	try {
+		
+		process.chdir(output_path);
+	} catch ($2) {
+		
+		quit("Failed to change to project dir");
+	};
 };
 
 try {
