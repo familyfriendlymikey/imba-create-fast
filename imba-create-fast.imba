@@ -1,5 +1,5 @@
-let { copySync, pathExistsSync } = require 'fs-extra'
 let path = require 'path'
+let { writeFileSync, existsSync, mkdirSync } = require 'fs'
 let { execSync } = require 'child_process'
 
 def quit msg="Quitting."
@@ -9,32 +9,75 @@ def quit msg="Quitting."
 if process.argv.length < 3
 	quit "No project name"
 
-let template_path = path.join __dirname, "template"
-let output_path = path.join process.cwd!, process.argv[2]
-
-let outpath_is_cwd = output_path === process.cwd!
-let outpath_already_exists = pathExistsSync output_path
+let outpath = path.resolve(process.argv[2])
+let outpath_is_cwd = outpath === process.cwd!
+let outpath_already_exists = existsSync outpath
 
 if outpath_already_exists and !outpath_is_cwd
 	quit "Output path already exists"
 
-try
-	copySync template_path, output_path
-catch
-	quit "Failed to copy project template"
+mkdirSync path.join(outpath, 'app'), { recursive:yes }
 
-unless outpath_is_cwd
-	try
-		process.chdir output_path
-	catch
-		quit "Failed to change to project dir"
+template_base!
 
-try
-	execSync 'npm i', { stdio: 'inherit' }
-catch
-	quit "Failed to run `npm i`"
+console.log "Done!"
 
-try
-	execSync 'npm start', { stdio: 'inherit' }
-catch
-	quit "Failed to run `npm start`"
+def template_base
+	let data
+
+	data = '''
+	.DS_Store
+	node_modules
+	dist
+	'''
+	writeFileSync path.join(outpath, '.gitignore'), data
+
+	data = '''
+	{
+		"name": "app",
+		"scripts": {
+			"start": "imba -w server.imba",
+			"build": "imba build server.imba"
+		},
+		"dependencies": {
+			"express": "^4.17.1",
+			"imba": "^2.0.0-alpha.207"
+		}
+	}
+	'''
+	writeFileSync path.join(outpath, 'package.json'), data
+
+	data = '''
+	import express from 'express'
+	import index from './app/index.html'
+	const app = express!
+	app.get(/.*/) do(req,res)
+		unless req.accepts(['image/*', 'html']) == 'html'
+			return res.sendStatus(404)
+		res.send index.body
+	imba.serve app.listen(process.env.PORT or 3000)
+	'''
+	writeFileSync path.join(outpath, 'server.imba'), data
+
+	data = '''
+	<html lang="en">
+			<head>
+					<title>app</title>
+					<meta charset="UTF-8">
+					<meta name="viewport" content="width=device-width, initial-scale=1">
+					<style src='*'></style>
+			</head>
+			<body>
+					<script type="module" src="./client.imba"></script>
+			</body>
+	</html>
+	'''
+	writeFileSync path.join(outpath, 'app', 'index.html'), data
+
+	data = '''
+	tag app
+		<self> "hello"
+
+	imba.mount <app>
+	'''
+	writeFileSync path.join(outpath, 'app', 'client.imba'), data
