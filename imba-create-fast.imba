@@ -20,9 +20,7 @@ def template_base
 
 	mkdirSync path.join(outpath, 'app'), { recursive:yes }
 
-	let data
-
-	data = """
+	let data = """
 	.DS_Store
 	node_modules
 	dist
