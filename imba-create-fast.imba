@@ -4,6 +4,7 @@ let { execSync } = require 'child_process'
 
 let project_name = process.argv[2]
 let outdir = path.resolve(project_name or '')
+project_name ||= path.basename process.cwd!
 
 if existsSync outdir and outdir isnt process.cwd!
 	quit "Output path already exists"
