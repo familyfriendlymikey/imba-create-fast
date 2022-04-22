@@ -12,7 +12,7 @@ if process.argv.length < 3
 let template_path = path.join __dirname, "template"
 let output_path = path.join process.cwd!, process.argv[2]
 
-if pathExistsSync output_path
+if pathExistsSync(output_path) and output_path !== process.cwd!
 	quit "Output path already exists"
 
 try
