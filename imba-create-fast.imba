@@ -3,9 +3,9 @@ let { writeFileSync, existsSync, mkdirSync } = require 'fs'
 let { execSync } = require 'child_process'
 
 let project_name = process.argv[2]
-let outpath = path.resolve(project_name or '')
+let outdir = path.resolve(project_name or '')
 
-if existsSync outpath and outpath isnt process.cwd!
+if existsSync outdir and outdir isnt process.cwd!
 	quit "Output path already exists"
 
 template_base!
@@ -18,60 +18,77 @@ def quit msg="Error"
 
 def template_base
 
-	mkdirSync path.join(outpath, 'app'), { recursive:yes }
+	let files = [
 
-	let data = """
-	.DS_Store
-	node_modules
-	dist
-	"""
-	writeFileSync path.join(outpath, '.gitignore'), data
+		{
+			path: '.gitignore'
+			data: """
+				.DS_Store
+				node_modules
+				dist
+			"""
+		}
 
-	data = """
-	\{
-		"name": "{project_name}",
-		"scripts": \{
-			"start": "imba -w server.imba",
-			"build": "imba build server.imba"
-		\},
-		"dependencies": \{
-			"express": "^4.17.1",
-			"imba": "^2.0.0-alpha.207"
-		\}
-	\}
-	"""
-	writeFileSync path.join(outpath, 'package.json'), data
+		{
+			path: 'package.json'
+			data: """
+				\{
+					"name": "{project_name}",
+					"scripts": \{
+						"start": "imba -w server.imba",
+						"build": "imba build server.imba"
+					\},
+					"dependencies": \{
+						"express": "^4.17.1",
+						"imba": "^2.0.0-alpha.207"
+					\}
+				\}
+			"""
+		}
 
-	data = """
-	import express from 'express'
-	import index from './app/index.html'
-	const app = express!
-	app.get(/.*/) do(req,res)
-		unless req.accepts(['image/*', 'html']) == 'html'
-			return res.sendStatus(404)
-		res.send index.body
-	imba.serve app.listen(process.env.PORT or 3000)
-	"""
-	writeFileSync path.join(outpath, 'server.imba'), data
+		{
+			path: 'server.imba'
+			data: """
+				import express from 'express'
+				import index from './app/index.html'
+				const app = express!
+				app.get(/.*/) do(req,res)
+					unless req.accepts(['image/*', 'html']) == 'html'
+						return res.sendStatus(404)
+					res.send index.body
+				imba.serve app.listen(process.env.PORT or 3000)
+			"""
+		}
 
-	data = """
-	<html lang="en">
-			<head>
-					<title>{project_name}</title>
-					<meta charset="UTF-8">
-					<meta name="viewport" content="width=device-width, initial-scale=1">
-					<style src='*'></style>
-			</head>
-			<body>
-					<script type="module" src="./client.imba"></script>
-			</body>
-	</html>
-	"""
-	writeFileSync path.join(outpath, 'app', 'index.html'), data
+		{
+			path: 'app/index.html'
+			data: """
+				<html lang="en">
+						<head>
+								<title>{project_name}</title>
+								<meta charset="UTF-8">
+								<meta name="viewport" content="width=device-width, initial-scale=1">
+								<style src='*'></style>
+						</head>
+						<body>
+								<script type="module" src="./client.imba"></script>
+						</body>
+				</html>
+			"""
+		}
 
-	data = """
-	tag app
-		<self> "hello"
-	imba.mount <app>
-	"""
-	writeFileSync path.join(outpath, 'app', 'client.imba'), data
+		{
+			path: 'app/client.imba'
+			data: """
+				tag app
+					<self> "hello"
+				imba.mount <app>
+			"""
+		}
+
+	]
+
+	for file in files
+		let outpath = path.join outdir, file.path
+		mkdirSync path.dirname(outpath), { recursive:yes }
+		writeFileSync outpath, file.data

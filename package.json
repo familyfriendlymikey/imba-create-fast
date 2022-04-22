@@ -1,6 +1,6 @@
 {
   "name": "imba-create-fast",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Create new imba projects faster.",
   "bin": "imba-create-fast.js",
   "scripts": {
