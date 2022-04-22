@@ -6,10 +6,7 @@ def quit msg="Quitting."
 	console.log "{msg}, quitting."
 	process.exit!
 
-if process.argv.length < 3
-	quit "No project name"
-
-let outpath = path.resolve(process.argv[2])
+let outpath = path.resolve(process.argv[2] or '')
 let outpath_is_cwd = outpath === process.cwd!
 let outpath_already_exists = existsSync outpath
 
