@@ -1,8 +1,11 @@
 {
   "name": "imba-create-fast",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Create new imba projects faster.",
-  "bin": "imba-create-fast.js",
+  "bin": "dist/imba-create-fast.js",
+  "scripts": {
+    "build": "imba build.imba"
+  },
   "dependencies": {
     "fs-extra": "^10.1.0"
   },
